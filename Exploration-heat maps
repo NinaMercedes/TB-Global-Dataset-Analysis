@@ -1,0 +1,41 @@
+#matrix1- matrix of samples with at least one phenotype provided
+meta <-read.csv("data.csv")
+library(dplyr)
+library(gplots)
+library(RColorBrewer)
+#Try omission of data by getting rid of some that have all missing values
+meta2 <- meta[, c(1, 14:35)]
+rownames(meta2) <- meta2$run_accession
+meta2 <- meta2[,c(-1)]
+colnames(meta2) <- gsub("para.aminosalicylic_acid", "PAS", colnames(meta2))
+onlyNAlines_idx <- meta2 %>%
+  is.na() %>%
+  apply(MARGIN = 1, FUN = all)
+meta2<- meta2[!onlyNAlines_idx,]
+#Making a heatmap for resistance data
+meta3 <- apply(meta2, 2, as.numeric)
+meta3 <- as.matrix(meta3)
+par(oma=c(10,4,4,2))
+heatmapy <- heatmap.2(meta3, scale="none", labRow= FALSE, cexCol=0.8, col= colorRampPalette(brewer.pal(8, "Blues"))(25))
+#16/11/2020
+#matrix2- matrix of susc/res/na for samples with at least one phenotype
+meta <-read.csv("data.csv")
+library(dplyr)
+library(gplots)
+library(RColorBrewer)
+#Try omission of data by getting rid of some that have all missing values
+meta2 <- meta[, c(1, 14:35)]
+rownames(meta2) <- meta2$run_accession
+meta2 <- meta2[,c(-1)]
+colnames(meta2) <- gsub("para.aminosalicylic_acid", "PAS", colnames(meta2))
+onlyNAlines_idx <- meta2 %>%
+  is.na() %>%
+  apply(MARGIN = 1, FUN = all)
+meta2<- meta2[!onlyNAlines_idx,]
+#Making a heatmap for resistance data
+meta2 <- meta2+1
+meta2[is.na(meta2)] <- "0"
+meta3 <- apply(meta2, 2, as.numeric)
+meta3 <- as.matrix(meta3)
+par(oma=c(10,4,4,2))
+heatmapy <- heatmap.2(meta3, scale="none", labRow= FALSE, cexCol=0.8, col= colorRampPalette(brewer.pal(8, "Blues"))(25), tracecol=NA)
