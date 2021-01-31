@@ -1,0 +1,141 @@
+library(data.table)
+library(MASS)
+library(pbapply)
+library(ggplot2)
+library(cowplot)
+library(gridExtra)
+library(dplyr)
+library(tidyr)
+# Read in meta data
+meta<-read.csv("tb.csv")
+
+meta<-read.csv("tb10k.meta.csv")
+meta<-read.csv("tb.csv")
+
+# Read in genotypes
+geno<-as.matrix(fread("mix.mat",header = T))
+geno[1:10,1:10]
+
+geno<-as.matrix(fread("lin7.mat.bin",header = T))
+geno[1:10,1:10]
+
+# Convert genotypes to binary where 0 = reference allele and 1 = alternate allele
+bin.geno<-t(apply(geno,1,function(x){
+  vec<- as.numeric(x[6:length(x)]!=x[3])
+  vec[x[6:length(x)]=="N"]<-NA
+  vec
+}))
+colnames(bin.geno)<-colnames(geno)[6:ncol(geno)]
+bin.geno[1:10,1:10]
+
+
+#Subset of 400 samples 
+col <- colnames(bin.geno)
+col <- data.frame(col)
+lin <- data.frame(meta$id, meta$lineage) 
+colnames(lin) <- c("id", "lineage")
+colnames(col) <- "id"
+col <- merge(col, lin)
+sublin <- data.frame(meta$id, meta$sublineage)
+colnames(sublin) <- c("id", "lineage")
+#PCA test
+dists<- dist(t(bin.geno),method="manhattan")
+pca<-cmdscale(dists, eig=T, k=5)
+write.csv(pca$points, "pcares.csv")
+write.csv(pca$eig[1:20], "pcaeig.csv")
+eigvals <- pca$eig
+eigvals <- eigvals[1:20]
+eigvals <- data.frame(eigvals)
+eigvals <- data.frame(rownames(eigvals), eigvals)
+colnames(eigvals) <- c("PC", "Eigenvalue")
+
+
+# Function for performing fisher test on 2x2 table for each variant
+associate<-function(bin.geno,meta,drug){
+  outcome<-meta[match(colnames(bin.geno),meta$id),drug]
+  pbapply(bin.geno,1,function(variant){
+    non.missing.geno<-which(!is.na(variant))
+    # maf = minor allele frequency (https://en.wikipedia.org/wiki/Minor_allele_frequency)
+    maf<-sort(table(variant)/length(which(!is.na(variant))))[1]
+    # only perform tests on variants with 0.1<maf>0.9
+    if (maf>0.1 & maf<0.90){
+      fisher.test(table(variant,outcome))$p.val
+    } else {
+      NA
+    }
+  })
+}
+
+# Perform GWAS
+pvals<-associate(bin.geno,meta,"rifampicin")
+# Get top hits
+top.hits<-geno[head(order(pvals)),1:4]
+top.hits
+# Manattan plot
+plot(-log10(pvals))
+
+#loop for Logistic Regression
+
+for(i in 1:ncol(bin.geno)){
+  foo <- suppressWarnings(glm(y01$pheno~ bin.geno[,i] + PCAplots2$PC1 + PCAplots2$PC2 + PCAplots2$PC3 + PCAplots2$PC4 + PCAplots2$PC5 , family=binomial(link='logit')))
+  wald<- wald.test(b=coef(foo), Sigma=vcov(foo), Terms=1:6)
+  pval2[i] <- wald$result$chi2[2]
+}
+wald<- wald.test(b=coef(foo), Sigma=vcov(foo), Terms=1:6)
+wald2 <- grep("P>X2", wald)
+wald$result$chi2
+min(pval2, na.rm=TRUE)
+#P-value correction
+pval.corrected.bonf <- p.adjust(pval2, method="bonferroni")
+res <- which(pval.corrected.bonf < 0.05)
+length(res)
+pval.corrected.fdr <- p.adjust(pval2, method="fdr")
+res <- which(pval.corrected.fdr < 0.05)
+log.pval <- -log10(pval2)
+log.pval <- -log10(pval.corrected.fdr)
+log.pval <- -log10(pval.corrected.bonf)
+set.seed(1)
+log.pval <- jitter(log.pval, amount=0.5)
+set.seed(1)
+log.pval <- jitter(pval2, amount=0.5)
+
+#for colours use epicontacts
+library(epicontacts)
+library(adegenet)
+plot(log.pval,
+     col = transp(azur(5)),
+     pch = 19,
+     cex = 1.5,
+     ylim=c(-0.5, 25),
+     main="GWAS",
+     xlab="SNP loci", ylab="-log10(p-value)")
+
+
+
+#Frequencies
+tbfreqs <- read.csv("~/phd/Data/tbfreqs.frq", sep="")
+hwe.0 <- read.delim("~/phd/Data/hwe.0.dat")
+tbfreqs$NCHROBS
+hist(tbfreqs$MAF, main="Histogram of MAF",     xlab="MAF (%)",      ylab="Number of sites (thousands)")  + scale_y_log10(labels = function(x) format(x, scientific = FALSE))
+ggplot(tbfreqs, aes(x=MAF)) + geom_histogram(colour="black", fill="white") + scale_y_log10(labels = function(x) format(x, scientific = FALSE)) + theme_bw() + ylab("Number of sites (log10 scale)")
+hist(hwe.0$Allele.Frequency, main="Histogram of MAF",     xlab="MAF (%)",      ylab="Number of sites", xlim=c(0,1), ylim=c(0, 2000))
+hwe.0 <- read.delim("~/phd/Data/hwe.0.dat")
+hwe.0 <- hwe.0[,-c(3:5)]
+write.csv(hwe.0, "this.csv")
+library(dplyr)
+maf2 <- hwe.0 %>% filter(Allele.Frequency<0.001)
+library(ggplot2)
+ggplot(data=hwe.0, aes(x=Allele.Frequency, y=Number), group=1) +
+  geom_line() + theme_bw() + ylab("Number of sites ")  + scale_y_log10()
+library(dplyr)
+maf2 <- hwe.0 %>% filter(Allele.Frequency<0.0125)
+ggplot(data=hwe.0, aes(x=Allele.Frequency, y=Number), group=1) +
+  geom_line() + theme_bw() + ylab("Number of sites ")  + scale_y_log10(labels = function(x) format(x, scientific = FALSE))
+maf3 <- hwe.0 %>% filter(Allele.Frequency<0.01)
+ggplot(data=maf3, aes(x=Allele.Frequency, y=Number), group=1) +
+  geom_line() + theme_bw() + ylab("Number of sites ")  + scale_y_log10()
+maf4 <- hwe.0 %>% filter(Allele.Frequency<0.5)
+ggplot(data=maf4, aes(x=Allele.Frequency, y=Number), group=1) +
+  geom_line() + theme_bw() + ylab("Number of sites ")  + scale_y_log10()
+
+
