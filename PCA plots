@@ -1,0 +1,289 @@
+## R Code for Plots
+#Set working directory
+setwd("~/phd/Data")
+
+#Loading data
+meta <-read.csv(tb.csv)
+
+#load packages
+library(ggplot2)
+library(data.table)
+library(MASS)
+library(pbapply)
+library(ggplot2)
+library(cowplot)
+library(gridExtra)
+library(dplyr)
+library(tidyr)
+# known mutations
+rif_samples <- read.delim("~/phd/Data/rif_samples", header=FALSE)
+cipro_samples <- read.delim("~/phd/Data/cipro_samples", header=FALSE)
+kana_samples <- read.delim("~/phd/Data/kana_samples", header=FALSE)
+bed_samples <- read.delim("~/phd/Data/bed_samples", header=FALSE)
+cap_samples <- read.delim("~/phd/Data/cap_samples", header=FALSE)
+amikacin_samples <- read.delim("~/phd/Data/amikacin_samples", header=FALSE)
+cyclo_samples <- read.delim("~/phd/Data/cyclo_samples", header=FALSE)
+delam_samples <- read.delim("~/phd/Data/delam_samples", header=FALSE)
+ethion_samples <- read.delim("~/phd/Data/ethion_samples", header=FALSE)
+pyraz_samples <- read.delim("~/phd/Data/pyraz_samples", header=FALSE)
+ison_samples <- read.delim("~/phd/Data/ison_samples", header=FALSE)
+linez_samples <- read.delim("~/phd/Data/linez_samples", header=FALSE)
+pas_samples <- read.delim("~/phd/Data/pas_samples", header=FALSE)
+strep_samples <- read.delim("~/phd/Data/strep_samples", header=FALSE)
+ethamb_samples <- read.delim("~/phd/Data/ethamb_samples", header=FALSE)
+colnames(rif_samples) <- c("chr", "pos", "run_accession", "m1", "R")
+
+
+#REPLACE 0 AND 1 FOR SUSCEPTIBLE VS RES PERCENT
+meta <- meta[,c(1, 14:35)]
+rifR <- meta[grep("0", meta$rifampicin),]
+rifm <- data.frame(rif_samples$run_accession)
+library(dplyr)
+rifm <- unique(rifm)
+colnames(rifm) <- c("run_accession")
+rifR2 <- merge(rifR, rifm)
+percent_rif <- nrow(rifR2)*100/nrow(rifR)
+
+ciproR <- meta[grep("0", meta$ciprofloxacin),]
+ciprom <- data.frame(cipro_samples$V3)
+library(dplyr)
+ciprom <- unique(ciprom)
+colnames(ciprom) <- c("run_accession")
+ciproR2 <- merge(ciproR, ciprom)
+percent_cipro <- nrow(ciproR2)*100/nrow(ciproR)
+
+bedR <- meta[grep("0", meta$bedaquiline),]
+bedm <- data.frame(bed_samples$V3)
+library(dplyr)
+bedm <- unique(bedm)
+colnames(bedm) <- c("run_accession")
+bedR2 <- merge(bedR, bedm)
+percent_bed <- nrow(bedR2)*100/nrow(bedR)
+
+capR <- meta[grep("0", meta$capreomycin),]
+capm <- data.frame(cap_samples$V3)
+library(dplyr)
+capm <- unique(capm)
+colnames(capm) <- c("run_accession")
+capR2 <- merge(capR, capm)
+percent_cap <- nrow(capR2)*100/nrow(capR)
+
+amikacinR <- meta[grep("0", meta$amikacin),]
+amikacinm <- data.frame(amikacin_samples$V3)
+library(dplyr)
+amikacinm <- unique(amikacinm)
+colnames(amikacinm) <- c("run_accession")
+amikacinR2 <- merge(amikacinR, amikacinm)
+percent_amikacin <- nrow(amikacinR2)*100/nrow(amikacinR)
+
+cycloR2 <- meta[grep("0", meta$cycloserine),]
+cyclom <- data.frame(cyclo_samples$V3)
+library(dplyr)
+cyclom <- unique(cyclom)
+colnames(cyclom) <- c("run_accession")
+cycloR2 <- merge(cycloR, cyclom)
+percent_cyclo <- nrow(cycloR2)*100/nrow(cycloR)
+
+delamR <- meta[grep("0", meta$delamanid),]
+delamm <- data.frame(delam_samples$V3)
+library(dplyr)
+delamm <- unique(delamm)
+colnames(delamm) <- c("run_accession")
+delamR2 <- merge(delamR, delamm)
+percent_delam <- nrow(delamR2)*100/nrow(delamR)
+
+ethionR2 <- meta[grep("0", meta$ethionamide),]
+ethionm <- data.frame(ethion_samples$V3)
+library(dplyr)
+ethionm <- unique(ethionm)
+colnames(ethionm) <- c("run_accession")
+ethionR2 <- merge(ethionR, ethionm)
+percent_ethion <- nrow(ethionR2)*100/nrow(ethionR)
+
+pyrazR <- meta[grep("0", meta$pyrazinamide),]
+pyrazm <- data.frame(pyraz_samples$V3)
+library(dplyr)
+pyrazm <- unique(pyrazm)
+colnames(pyrazm) <- c("run_accession")
+pyrazR2 <- merge(pyrazR, pyrazm)
+percent_pyraz <- nrow(pyrazR2)*100/nrow(pyrazR)
+
+isonR <- meta[grep("0", meta$isoniazid),]
+isonm <- data.frame(ison_samples$V3)
+library(dplyr)
+isonm <- unique(isonm)
+colnames(isonm) <- c("run_accession")
+isonR2 <- merge(isonR, isonm)
+percent_ison <- nrow(isonR2)*100/nrow(isonR)
+
+linezR <- meta[grep("0", meta$linezolid),]
+linezm <- data.frame(linez_samples$V3)
+library(dplyr)
+linezm <- unique(linezm)
+colnames(linezm) <- c("run_accession")
+linezR2 <- merge(linezR, linezm)
+percent_linez <- nrow(linezR2)*100/nrow(linezR)
+
+pasR <- meta[grep("0", meta$para.aminosalicylic_acid),]
+pasm <- data.frame(pas_samples$V3)
+library(dplyr)
+pasm <- unique(pasm)
+colnames(pasm) <- c("run_accession")
+pasR2 <- merge(pasR, pasm)
+percent_pas <- nrow(pasR2)*100/nrow(pasR)
+
+strepR <- meta[grep("0", meta$streptomycin),]
+strepm <- data.frame(strep_samples$V3)
+library(dplyr)
+strepm <- unique(strepm)
+colnames(strepm) <- c("run_accession")
+strepR2 <- merge(strepR, strepm)
+percent_strep <- nrow(strepR2)*100/nrow(strepR)
+
+kanaR <- meta[grep("0", meta$kanamycin),]
+kanam <- data.frame(kana_samples$V3)
+library(dplyr)
+kanam <- unique(kanam)
+colnames(kanam) <- c("run_accession")
+kanaR2 <- merge(kanaR, kanam)
+percent_kana <- nrow(kanaR2)*100/nrow(kanaR)
+
+percent_ethamb <- 100
+
+percentages <- data.frame(percent_rif,percent_ison,percent_ethamb,percent_pyraz,percent_strep,percent_amikacin, percent_kana, percent_cap, percent_cipro,percent_cyclo,percent_ethion, percent_pas, percent_bed,   percent_delam,   percent_linez)
+colnames(percentages) <- c("rifampicin", "isoniazid", "ethambutol", "pyrazinamide", "streptomycin", "amikacin","kanamycin", "capreomycin","ciprofloxacin","cycloserine","ethionamide","PAS", "bedaquiline", "delamanid",  "linezolid"    )
+percentages <- t(percentages)
+plot <- data.frame(rownames(percentages), percentages)
+order <-c("rifampicin", "isoniazid", "ethambutol", "pyrazinamide", "streptomycin", "amikacin","kanamycin", "capreomycin","ciprofloxacin","cycloserine","ethionamide","PAS", "bedaquiline", "delamanid",  "linezolid" )
+colnames(plot) <- c("Antimicrobial", "Percentage")
+plot$Antimicrobial <- factor(plot$Antimicrobial, levels = plot$Antimicrobial)
+plot1 <- ggplot(plot, aes(x=reorder(Antimicrobial, order), y=Percentage)) + geom_bar(stat="identity") + theme_classic() + ggtitle("Percentage of resistance explained by known drug-resistant mutations") + xlab("Antimicrobial") 
+
+
+
+discages <- data.frame(disc_rif,disc_ison,disc_pyraz,disc_strep,disc_amikacin, disc_kana, disc_cap, disc_cipro,disc_cyclo,disc_ethion, disc_pas, disc_bed,   disc_delam,   disc_linez)
+colnames(discages) <- c("rifampicin", "isoniazid",  "pyrazinamide", "streptomycin", "amikacin","kanamycin", "capreomycin","ciprofloxacin","cycloserine","ethionamide","PAS", "bedaquiline", "delamanid",  "linezolid"    )
+discages <- t(discages)
+plot <- data.frame(rownames(discages), discages)
+order <-c("rifampicin", "isoniazid",  "pyrazinamide", "streptomycin", "amikacin","kanamycin", "capreomycin","ciprofloxacin","cycloserine","ethionamide","PAS", "bedaquiline", "delamanid",  "linezolid" )
+colnames(plot) <- c("Antimicrobial", "discage")
+plot$Antimicrobial <- factor(plot$Antimicrobial, levels = plot$Antimicrobial)
+plot1 <- ggplot(plot, aes(x=reorder(Antimicrobial, order), y=discage)) + geom_bar(stat="identity") + theme_bw() + ggtitle("Susceptible isolates with known drug-resistant mutations") + xlab("Antimicrobial") + ylab("Number of Susceptible Isolates")
+
+
+#PCA plot
+#actual datset
+lin <- data.frame(meta$run_accession, meta$lineage) 
+colnames(lin) <- c("id", "lineage")
+eigenvec <- read.csv("eigenvec.csv", header=TRUE)
+colnames(eigenvec) <- c("id", "PC1", "PC2", "PC3", "PC4", "PC5")
+PCAplots <- merge(eigenvec, lin)
+eigvals <- data.frame(rownames(eigvals), eigvals$V1)
+colnames(eigvals) <- c("PC", "Eigenvalue")
+plot1 <- qplot(PC1, PC2, data=PCAplots, color=lineage) + theme_bw()+ theme(legend.position="none")
+plot2 <- qplot(PC2, PC3, data=PCAplots, color=lineage) + theme_bw()
+plot3 <- qplot(PC3, PC4, data=PCAplots, color=lineage) + theme_bw()+ theme(legend.position="none")
+plot4 <- qplot(PC4, PC5, data=PCAplots, color=lineage) + theme_bw()+ theme(legend.position="none")
+legend <- get_legend(plot2)
+plot2 <- qplot(PC2, PC3, data=PCAplots, color=lineage) + theme_bw() + theme(legend.position="none")
+eigplot<- ggplot(eigvals, aes(x=reorder(PC,-Eigenvalue), y=Eigenvalue)) + geom_bar(stat="identity") + xlab("Principal Component") + theme_bw()
+grid1 <- plot_grid(plot1, plot2, legend, plot3, plot4, eigplot)
+#smaller lineage scale
+lin$lineage <- gsub("lineage1.*", "lineage1", lin$lineage)
+lin$lineage <- gsub("lineage2.*", "lineage2", lin$lineage)
+lin$lineage <- gsub("lineage3.*", "lineage3", lin$lineage)
+lin$lineage <- gsub("lineage4.*", "lineage4", lin$lineage)
+lin$lineage <- gsub("lineage5.*", "lineage5", lin$lineage)
+lin$lineage <- gsub("lineage6.*", "lineage6", lin$lineage)
+lin$lineage <- gsub("lineage7.*", "lineage7", lin$lineage)
+PCAplots <- merge(eigenvec, lin)
+plot1 <- qplot(PC1, PC2, data=PCAplots, color=lineage) + theme_bw()+ theme(legend.position="none")
+plot2 <- qplot(PC2, PC3, data=PCAplots, color=lineage) + theme_bw()
+plot3 <- qplot(PC3, PC4, data=PCAplots, color=lineage) + theme_bw()+ theme(legend.position="none")
+plot4 <- qplot(PC4, PC5, data=PCAplots, color=lineage) + theme_bw()+ theme(legend.position="none")
+legend <- get_legend(plot2)
+plot2 <- qplot(PC2, PC3, data=PCAplots, color=lineage) + theme_bw() + theme(legend.position="none")
+eigplot<- ggplot(eigvals, aes(x=reorder(PC,-Eigenvalue), y=Eigenvalue)) + geom_bar(stat="identity") + xlab("Principal Component") + theme_bw()
+grid2 <- plot_grid(plot1, plot2, legend, plot3, plot4, eigplot)
+
+
+# Resistant PCA plot
+
+tbres.pca <- read.table("~/phd/Data/tbres.pca.eigenvec", quote="\"", comment.char="")
+eigenvec <- tbres.pca[,c(1,(3:8))]
+tbres<- data.frame(eigenvec$V1)
+colnames(tbres) <- "run_accession"
+merge <- left_join(tbres, meta)
+lin <- data.frame(merge$run_accession, merge$lineage) 
+colnames(lin) <- c("id", "lineage")
+colnames(eigenvec) <- c("id", "PC1", "PC2", "PC3", "PC4", "PC5")
+PCAplots <- merge(eigenvec, lin)
+eigvals <- read.table("~/phd/Data/tbres.pca.eigenval", quote="\"", comment.char="")
+eigvals <- data.frame(rownames(eigvals), eigvals)
+colnames(eigvals) <- c("PC", "Eigenvalue")
+plot1 <- qplot(PC1, PC2, data=PCAplots, color=lineage) + theme_bw()+ theme(legend.position="none")
+plot2 <- qplot(PC2, PC3, data=PCAplots, color=lineage) + theme_bw()
+plot3 <- qplot(PC3, PC4, data=PCAplots, color=lineage) + theme_bw()+ theme(legend.position="none")
+plot4 <- qplot(PC4, PC5, data=PCAplots, color=lineage) + theme_bw()+ theme(legend.position="none")
+legend <- get_legend(plot2)
+plot2 <- qplot(PC2, PC3, data=PCAplots, color=lineage) + theme_bw() + theme(legend.position="none")
+eigplot<- ggplot(eigvals, aes(x=reorder(PC,-Eigenvalue), y=Eigenvalue)) + geom_bar(stat="identity") + xlab("Principal Component") + theme_bw()
+grid1 <- plot_grid(plot1, plot2, legend, plot3, plot4, eigplot)
+#smaller lineage scale
+lin$lineage <- gsub("lineage1.*", "lineage1", lin$lineage)
+lin$lineage <- gsub("lineage2.*", "lineage2", lin$lineage)
+lin$lineage <- gsub("lineage3.*", "lineage3", lin$lineage)
+lin$lineage <- gsub("lineage4.*", "lineage4", lin$lineage)
+lin$lineage <- gsub("lineage5.*", "lineage5", lin$lineage)
+lin$lineage <- gsub("lineage6.*", "lineage6", lin$lineage)
+lin$lineage <- gsub("lineage7.*", "lineage7", lin$lineage)
+PCAplots <- merge(eigenvec, lin)
+plot1 <- qplot(PC1, PC2, data=PCAplots, color=lineage) + theme_bw()+ theme(legend.position="none")
+plot2 <- qplot(PC2, PC3, data=PCAplots, color=lineage) + theme_bw()
+plot3 <- qplot(PC3, PC4, data=PCAplots, color=lineage) + theme_bw()+ theme(legend.position="none")
+plot4 <- qplot(PC4, PC5, data=PCAplots, color=lineage) + theme_bw()+ theme(legend.position="none")
+legend <- get_legend(plot2)
+plot2 <- qplot(PC2, PC3, data=PCAplots, color=lineage) + theme_bw() + theme(legend.position="none")
+eigplot<- ggplot(eigvals, aes(x=reorder(PC,-Eigenvalue), y=Eigenvalue)) + geom_bar(stat="identity") + xlab("Principal Component") + theme_bw()
+grid2 <- plot_grid(plot1, plot2, legend, plot3, plot4, eigplot)
+
+tbres.pca <- read.table("~/phd/Data/tbres.pca.eigenvec", quote="\"", comment.char="")
+eigenvec <- tbres.pca[,c(1,3:8)]
+tbres<- data.frame(eigenvec$V1)
+colnames(tbres) <- "run_accession"
+merge <- left_join(tbres, meta)
+lin <- data.frame(merge$run_accession, merge$label) 
+colnames(lin) <- c("id", "Phenotype")
+colnames(eigenvec) <- c("id", "PC1", "PC2", "PC3", "PC4", "PC5")
+PCAplots <- merge(eigenvec, lin)
+eigvals <- read.table("~/phd/Data/tbres.pca.eigenval", quote="\"", comment.char="")
+eigvals <- data.frame(rownames(eigvals), eigvals)
+colnames(eigvals) <- c("PC", "Eigenvalue")
+plot1 <- qplot(PC1, PC2, data=PCAplots, color=Phenotype) + theme_bw()+ theme(legend.position="none")
+plot2 <- qplot(PC2, PC3, data=PCAplots, color=Phenotype) + theme_bw()
+plot3 <- qplot(PC3, PC4, data=PCAplots, color=Phenotype) + theme_bw()+ theme(legend.position="none")
+plot4 <- qplot(PC4, PC5, data=PCAplots, color=Phenotype) + theme_bw()+ theme(legend.position="none")
+legend <- get_legend(plot2)
+plot2 <- qplot(PC2, PC3, data=PCAplots, color=Phenotype) + theme_bw() + theme(legend.position="none")
+eigplot<- ggplot(eigvals, aes(x=reorder(PC,-Eigenvalue), y=Eigenvalue)) + geom_bar(stat="identity") + xlab("Principal Component") + theme_bw()
+grid1 <- plot_grid(plot1, plot2, legend, plot3, plot4, eigplot)
+
+lin <- data.frame(meta$run_accession, meta$label) 
+colnames(lin) <- c("id", "Phenotype")
+pca1 <- read.table("~/phd/Data/pca1.eigenvec", quote="\"", comment.char="")
+eigenvec <- pca1[,c(2:8)]
+eigvals <- read.table("~/phd/Data/pca1.eigenval", quote="\"", comment.char="")
+eigvals <- data.frame(rownames(eigvals), eigvals)
+colnames(eigenvec) <- c("id", "PC1", "PC2", "PC3", "PC4", "PC5")
+PCAplots <- merge(eigenvec, lin)
+colnames(eigvals) <- c("PC", "Eigenvalue")
+plot1 <- qplot(PC1, PC2, data=PCAplots, color=Phenotype) + theme_bw()+ theme(legend.position="none")
+plot2 <- qplot(PC2, PC3, data=PCAplots, color=Phenotype) + theme_bw()
+plot3 <- qplot(PC3, PC4, data=PCAplots, color=Phenotype) + theme_bw()+ theme(legend.position="none")
+plot4 <- qplot(PC4, PC5, data=PCAplots, color=Phenotype) + theme_bw()+ theme(legend.position="none")
+legend <- get_legend(plot2)
+plot2 <- qplot(PC2, PC3, data=PCAplots, color=Phenotype) + theme_bw() + theme(legend.position="none")
+eigplot<- ggplot(eigvals, aes(x=reorder(PC,-Eigenvalue), y=Eigenvalue)) + geom_bar(stat="identity") + xlab("Principal Component") + theme_bw()
+grid1 <- plot_grid(plot1, plot2, legend, plot3, plot4, eigplot)
+
+
