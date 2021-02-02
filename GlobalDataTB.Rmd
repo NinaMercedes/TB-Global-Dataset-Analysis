@@ -1,0 +1,365 @@
+## Global TB Dataset
+
+# Load data and explore
+Let's load the global TB dataset and take a look at our data. The metadata contains some of the labels we will be using for supervised machine learning. To do this we will first have to set the working directory.
+```r
+setwd("~/phd/Data")
+load("workspace.RData")
+meta <- read.csv("subset.csv")
+```
+Now we need to explore the data, let's first take a look at how many samples(rows) and how many labels (columns we have). 
+
+```{r, include=TRUE}
+meta <- read.csv("subset.csv")
+nrow(meta)
+ncol(meta)
+```
+So we have 34,176 samples with 59 labels. What labels are we interested in?
+
+```{r, include=TRUE}
+meta <- read.csv("subset.csv")
+colnames(meta)
+```
+
+We are primarily interested in the the **run_accession** or 'ID' of the sample, the **year** and **country** it was sequenced, and **drug sensitivity result**. 
+So let's explore our data visually. The following plots show how many of our samples are resistant or susceptible to each drug, how many there are from each country and how many from each lineage. 
+
+Let's begin by looking at the number in each country.To do this we use the choroplethr and ggplot2 packages.
+```{r, echo=FALSE,warning=FALSE,message=FALSE,error=FALSE, results='hide',fig.keep='all'}
+#Exploring data by geographical region
+meta <- read.csv("subset.csv")
+library(dplyr)
+library(ggplot2)
+country <- meta$country
+country <- data.frame(country)
+country$country[grepl("United Kingdom*", country$country )] <- "United Kingdom"
+country$country[grepl("China*", country$country )] <- "China"
+country$country[grepl("South Africa*", country$country )] <- "South Africa"
+country$country[grepl("USA*", country$country )] <- "USA"
+country$country[grepl("Canada*", country$country )] <- "Canada"
+country$country[grepl("India*", country$country )] <- "India"
+country$country[grepl("Thailand*", country$country )] <- "Thailand"
+country$country[grepl("Uganda*", country$country )] <- "Uganda"
+country$country[grepl("Malaysia*", country$country )] <- "Malaysia"
+country$country[grepl("Mexico*", country$country )] <- "Mexico"
+country$country[grepl("Viet Nam*", country$country )] <- "Vietnam"
+country$country[grepl("Netherlands*", country$country )] <- "Netherlands"
+country$country[grepl("Australia*", country$country )] <- "Australia"
+country$country[grepl("Romania*", country$country )] <- "Romania"
+country$country[grepl("Papua New Guinea*", country$country )] <- "Papua New Guinea"
+country$country[grepl("Cote d&apos;Ivoire", country$country )] <- "Cote d'ivoire"
+country$country[grepl("Cote d&apos;&apos;Ivoire", country$country )] <- "Cote d'ivoire"
+country$country[grepl("TUNISIA", country$country )] <- "Tunisia"
+library(dplyr)
+country <- country %>% mutate_all(na_if,"")
+country <- country %>% mutate_all(na_if,"not collected")
+
+
+#calculating numbers
+library("dplyr")
+country2 <- distinct(country)
+country4 <- country2$country
+ "South Africa"                     
+ "United Kingdom"                   
+ "USA"                             
+ "Australia"                        
+ "Brazil"                           
+ "India"                           
+ "Ethiopia"                         
+ "France"                           
+ "Nigeria"                          
+ "Argentina"                       
+ "Canada"                           
+ "Ireland"                          
+ "Ghana"                            
+ "Tunisia"                         
+"Russia"                          
+"Nepal"                            
+"Papua New Guinea"                 
+"Switzerland"                     
+ "Tanzania"                        
+ "Georgia"                         
+ "Kenya"                           
+ "Romania"                         
+ "Botswana"                         
+ "Zimbabwe"                         
+ "Denmark"                          
+ "Guatemala"                       
+ "Peru"                             
+ "Sweden"                           
+ "Thailand"                         
+ "Djibouti"                        
+ "Mexico"                           
+ "Bangladesh"                       
+ "Germany"                         
+ "Sierra Leone"                    
+"Gambia"                           
+"Lebanon"                          
+"Norway"                           
+"Uganda"                          
+"Malawi"                           
+"Netherlands"                      
+"Malaysia"                         
+"UK"                              
+"Estonia"                          
+"Democratic Republic of the Congo" 
+"Cote d'ivoire"                    
+"Vietnam"  
+country3 <- data.frame(sum(grepl(	"China"              			, country$country)), sum(grepl(	"South Africa"              			, country$country))		,
+                       sum(grepl(	 "United Kingdom"                   			, country$country))		, sum(grepl(	"NA"  			, country$country)),
+                       sum(grepl(	 "USA"                             			, country$country))		,
+                       sum(grepl(	 "Australia"                        			, country$country))		,
+                       sum(grepl(	 "Brazil"                           			, country$country))		,
+                       sum(grepl(	 "India"                           			, country$country))		,
+                       sum(grepl(	 "Ethiopia"                         			, country$country))		,
+                       sum(grepl(	 "France"                           			, country$country))		,
+                       sum(grepl(	 "Nigeria"                          			, country$country))		,
+                       sum(grepl(	 "Argentina"                       			, country$country))		,
+                       sum(grepl(	 "Canada"                           			, country$country))		,
+                       sum(grepl(	 "Ireland"                          			, country$country))		,
+                       sum(grepl(	 "Ghana"                            			, country$country))		,
+                       sum(grepl(	 "Tunisia"                         			, country$country))		,
+                       sum(grepl(	"Russia"                          			, country$country))		,
+                       sum(grepl(	"Nepal"                            			, country$country))		,
+                       sum(grepl(	"Papua New Guinea"                 			, country$country))		,
+                       sum(grepl(	"Switzerland"                     			, country$country))		,
+                       sum(grepl(	 "Tanzania"                        			, country$country))		,
+                       sum(grepl(	 "Georgia"                         			, country$country))		,
+                       sum(grepl(	 "Kenya"                           			, country$country))		,
+                       sum(grepl(	 "Romania"                         			, country$country))		,
+                       sum(grepl(	 "Botswana"                         			, country$country))		,
+                       sum(grepl(	 "Zimbabwe"                         			, country$country))		,
+                       sum(grepl(	 "Denmark"                          			, country$country))		,
+                       sum(grepl(	 "Guatemala"                       			, country$country))		,
+                       sum(grepl(	 "Peru"                             			, country$country))		,
+                       sum(grepl(	 "Sweden"                           			, country$country))		,
+                       sum(grepl(	 "Thailand"                         			, country$country))		,
+                       sum(grepl(	 "Djibouti"                        			, country$country))		,
+                       sum(grepl(	 "Mexico"                           			, country$country))		,
+                       sum(grepl(	 "Bangladesh"                       			, country$country))		,
+                       sum(grepl(	 "Germany"                         			, country$country))		,
+                       sum(grepl(	 "Sierra Leone"                    			, country$country))		,
+                       sum(grepl(	"Gambia"                           			, country$country))		,
+                       sum(grepl(	"Lebanon"                          			, country$country))		,
+                       sum(grepl(	"Norway"                           			, country$country))		,
+                       sum(grepl(	"Uganda"                         			, country$country))		,
+                       sum(grepl(	"Malawi"                           			, country$country))		,
+                       sum(grepl(	"Netherlands"                      			, country$country))		,
+                       sum(grepl(	"Malaysia"                         			, country$country))		,
+                       sum(grepl(	"UK"                              			, country$country))		,
+                       sum(grepl(	"Estonia"                          			, country$country))		,
+                       sum(grepl(	"Democratic Republic of the Congo" 			, country$country))		,
+                       sum(grepl(	"Cote d'ivoire"                    			, country$country))		,
+sum(grepl(	"Vietnam"  			, country$country)))
+country3 <- t(country3)
+rownames(country3) <- c("China", "South Africa"	,
+"United Kingdom",
+"NA"	,
+"USA"	,
+"Australia"	,
+"Brazil"	,
+"India"	,
+"Ethiopia"	,
+"France"	,
+"Nigeria"	,
+"Argentina"	,
+"Canada"	,
+"Ireland"	,
+"Ghana"	,
+"Tunisia"	,
+"Russia"	,
+"Nepal"	,
+"Papua New Guinea"	,
+"Switzerland"	,
+"Tanzania"	,
+"Georgia"	,
+"Kenya"	,
+"Romania"	,
+"Botswana"	,
+"Zimbabwe"	,
+"Denmark"	,
+"Guatemala"	,
+"Peru"	,
+"Sweden"	,
+"Thailand"	,
+"Djibouti"	,
+"Mexico"	,
+"Bangladesh"	,
+"Germany"	,
+"Sierra Leone"	,
+"Gambia"	,
+"Lebanon"	,
+"Norway"	,
+"Uganda"	,
+"Malawi"	,
+"Netherlands"	,
+"Malaysia"	,
+"UK"	,
+"Estonia"	,
+"Democratic Republic of the Congo"	,
+"Cote.d.ivoire"	,
+"Vietnam"	)
+
+colnames(country3)<- c("SUM")
+country3 <- data.frame(country3, drop=FALSE)
+#for matrix subsetting have to use drop=FALSE
+country5 <- country3
+country5 <- country5[c(-4), ]
+rownames(country5)<- tolower(rownames(country5))
+rownames(country5) <- gsub(".", " ", rownames(country5), fixed=TRUE)
+rownames(country5) <- gsub("cote d ivoire", "ivory coast", rownames(country5), fixed=TRUE)
+country5$SUM <- gsub("1281", "1299", country5$SUM)
+country5 <- country5 <- country5[c(-43), ]
+
+country6 <- data.frame(rownames(country5), country5$SUM)
+colnames(country6) <- c("region", "value")
+country6$region <- gsub("usa", "united states of america", country6$region)
+country6$region <- gsub("tanzania", "united republic of tanzania", country6$region)
+country6$value <- as.numeric(country6$value)
+#Making a chloropleth map
+library(choroplethrMaps)
+data(country.map, package = "choroplethrMaps")
+library(choroplethr)
+library(ggplot2)
+Isolates_per_country<- country_choropleth(country6, num_colors = 1, legend = "Number of Isolates")  + labs(title = "Number of Isolates per Country") 
+Isolates_per_country
+```
+
+
+From this we can see that South Africa has the highest number of isolates in comparison to other countries. We can also see that there is a global distribution of isolates. This is important to as we do not want our dataset to be bias. 
+
+Next we will look at the number of resistant and susceptible isolates to each drugs.
+```{r, echo=FALSE,warning=FALSE,message=FALSE,error=FALSE, results='hide',fig.keep='all'}
+meta <- read.csv("subset.csv")
+meta[,c(15,36)] <- apply(meta[,c(15,36)], 2, as.numeric)
+meta2<- colSums(meta[,c(15:36)], na.rm=TRUE)
+meta2 <-data.frame(meta2)
+meta3 <- meta[,c(14:35)]
+meta3 <- colSums(meta3==0, na.rm=TRUE)
+meta3 <- data.frame(meta3)
+library(ggplot2)
+meta2 <- data.frame(rownames(meta2),meta2$meta2)
+colnames(meta2) <- c("x1","y1")
+meta2$x1 <- gsub("para.aminosalicylic_acid", "PAS", meta2$x1)
+meta3 <- data.frame(rownames(meta3),meta3$meta3)
+colnames(meta3) <- c("x1","y2")
+meta3$x1 <- gsub("para.aminosalicylic_acid", "PAS", meta3$x1)
+plota <- ggplot(data=meta2, aes(x=x1, y=y1)) +
+  geom_bar(stat="identity") + theme_classic() + ylab("Number of resistant isolates") + xlab("Antimicrobial drug") + theme(axis.text.x = element_text(angle = 90)) 
+plot <- ggplot(data=meta3, aes(x=x1, y=y2)) +
+  geom_bar(stat="identity") + theme_classic() + ylab("Number of susceptible isolates") + xlab("Antimicrobial drug") +  theme(axis.text.x = element_text(angle = 90)) 
+plota
+plot
+
+```
+
+Now we will look at the percentage of missing data for each drug. Note that these charts are relative to the number of recorded phenotypes in the dataset. Yet, this still gives us a nice overview of the data which may come in useful in downstream analyses.
+
+```{r, echo=FALSE,warning=FALSE,message=FALSE,error=FALSE, results='hide',fig.keep='all'}
+meta <- read.csv("subset.csv")
+meta2 <- meta[, c(1, 15:36)]
+rownames(meta2) <- meta2$run_accession
+meta2 <- meta2[,c(-1)]
+onlyNAlines_idx <- meta2 %>%
+  is.na() %>%
+  apply(MARGIN = 1, FUN = all)
+meta2<- meta2[!onlyNAlines_idx,]
+
+#find the number of na in each column
+Missing <- meta2 %>% summarise_all(funs(sum(is.na(.))))
+colnames(meta2)
+#find percentage na
+Missing <- Missing*100/18396
+Present <- 100-Missing
+Missing <- as.data.frame(t(Missing))
+colnames(Missing)<- "Missing"
+Present <- as.data.frame(t(Present)) 
+colnames(Present) <- "Present"
+Antimicrobial <- rownames(Present)
+NAval <- data.frame(Antimicrobial, Present, Missing)
+Missingdata <- rbind(
+  data.frame(NAval$Antimicrobial, "Percentage" = NAval$Present, "type"="Present"),
+  data.frame(NAval$Antimicrobial, "Percentage" = NAval$Missing, "type"="Missing")
+)
+colnames(Missingdata) <- c("Antimicrobial", "Percentage", "Type")
+NAplot2 <- ggplot(Missingdata, aes(x=Antimicrobial, y=Percentage, fill=Type)) +
+  geom_bar(stat="identity") + theme_classic() + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + ggtitle("Percentage of Missing Binary Phenotype Data")  + scale_fill_manual("Legend", values = c("Missing" = "Grey", "Present" = "Purple")) + scale_y_continuous(labels = scales::comma)                     
+NAplot2
+```
+We can see for first-line drugs we have a large amount of data present. However, for second and third line drugs we see a large percentage of missing data.
+We now need to know how many isolates have completely missing data so that we can remove them from our analysis. 
+
+```{r, include=TRUE}
+meta <- read.csv("subset.csv")
+meta2 <- meta[, c(1, 15:36)]
+rownames(meta2) <- meta2$run_accession
+meta2 <- meta2[,c(-1)]
+onlyNAlines_idx <- meta2 %>%
+  is.na() %>%
+  apply(MARGIN = 1, FUN = all)
+meta2<- meta2[!onlyNAlines_idx,]
+nrow(meta2)
+```
+So there are many isolates with complete missing phenotype data- we will exclude these from the analysis but may use them for testing our algorithm much (much, much) later on.
+
+We will also want to know how many isolates are in each lineage. This is because we will want to ensure that we have the same proportion of lineages in our training, testing and validation sets. This can be looked at using a simple plot such as a pie chart. 
+```{r, include=TRUE}
+library(plyr)
+meta <- read.csv("subset.csv")
+meta$lineage <- gsub("lineage1.*", "lineage1", meta$lineage)
+meta$lineage <- gsub("lineage2.*", "lineage2", meta$lineage)
+meta$lineage <- gsub("lineage3.*", "lineage3", meta$lineage)
+meta$lineage <- gsub("lineage4.*", "lineage4", meta$lineage)
+meta$lineage <- gsub("lineage5.*", "lineage5", meta$lineage)
+meta$lineage <- gsub("lineage6.*", "lineage6", meta$lineage)
+meta$lineage <- gsub("lineage7.*", "lineage7", meta$lineage)
+count(meta, 'lineage')
+```
+We will remove the isolate with uknown lineage. We can see that the majority of the isolates are in lineage 4 and there are very few in lineage 7. We expect our machine learning datasets to have a similar proportion.
+
+
+# Splitting the data
+We will now need to split the data into training, testing and validation datasets. This will be needed for machine learning downstream. This will also make the phylogenetic analysis less computationally intensive. To do this we will use the *caret* package in R.
+Let's load the package using library(). 
+
+Now that the package is loaded, we want to split up our data. To do this we will use the createDataPartition function in caret. This allows us to also use stratified sampling so we maintain the same proportion of lineages to the original dataset. We will split it once to get our training dataset first (80%) and then split the remaininf 20% once more to get our testing dataset (80%) and validation dataset(20%).We have one sample with uknown lineage which will be removed. We save these into independent csv files so which isolates we are working with in the future. We will also save the *run_accession* into a text file so that we can filter the genotype data (Vcf.gz) files. We can then make three separate genotpye matrices, but this will be done using a high performing computer (hpc) as this part is more computationally intense. We will also be able to make phylogenetic trees using the vcf2phylip.py scrift and fasttree software. This will also be done using command line software on a linux hpc.
+
+```{r, include=TRUE}
+library(caret)
+setwd("~/phd/Data")
+meta <- read.csv("subset.csv")
+onlyNAlines_idx <- meta2 %>%
+  is.na() %>%
+  apply(MARGIN = 1, FUN = all)
+meta2<- meta[!onlyNAlines_idx,]
+meta2$lineage <- gsub("lineage1.*", "lineage1", meta2$lineage)
+meta2$lineage <- gsub("lineage2.*", "lineage2", meta2$lineage)
+meta2$lineage <- gsub("lineage3.*", "lineage3", meta2$lineage)
+meta2$lineage <- gsub("lineage4.*", "lineage4", meta2$lineage)
+meta2$lineage <- gsub("lineage5.*", "lineage5", meta2$lineage)
+meta2$lineage <- gsub("lineage6.*", "lineage6", meta2$lineage)
+meta2$lineage <- gsub("lineage7.*", "lineage7", meta2$lineage)
+meta2 <- meta2[-grep("Unknown", meta2$lineage),]
+set.seed(459)
+index <- createDataPartition(meta2$lineage, time=1, p=0.8, list=FALSE)
+meta_training <- meta2[index,]
+meta_ml <- meta2[-index,]
+index2 <- createDataPartition(meta_ml$lineage, time=1, p=0.8, list=FALSE)
+meta_testing <- meta_ml[index2,]
+meta_validation <- meta_ml[-index2,]
+write.csv(meta_validation, "meta_validation.csv")
+write.csv(meta_testing, "meta_testing.csv")
+write.csv(meta_training, "meta_training.csv")
+write.csv(meta_validation$run_accession, "valid_names.txt", row.names = FALSE)
+write.csv(meta_training$run_accession, "train_names.txt", row.names = FALSE)
+write.csv(meta_testing$run_accession, "test_names.txt", row.names = FALSE)
+```
+
+So do the separate datasets have the same proportion of lineage? Let's take a look. 
+
+```{r, include=TRUE}
+prop.table(table(meta_validation$lineage))
+prop.table(table(meta_training$lineage))
+prop.table(table(meta_testing$lineage))
+```
+
